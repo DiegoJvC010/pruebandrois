@@ -41,4 +41,5 @@
     <string name="alarma">Alarm</string>
     <string name="mensaje_tarea"> - Time\'s running out SpongeBob - Get moving with that task!</string>
     <string name="noti_permiso">You need to grant notifications permission to continue.</string>
+    <string name="archivos">Files</string>
 </resources>

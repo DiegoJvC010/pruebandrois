@@ -11,6 +11,7 @@ import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -28,6 +29,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material3.DatePicker
@@ -146,17 +148,16 @@ fun Editar(
                 title = { Text(stringResource(R.string.editar_tarea_nota)) },
                 navigationIcon = {
                     IconButton(onClick = {
-                        //tareasNotasViewModel.resetearNotificaciones()
                         navController.navigateUp()
                     }) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "Regresar")
                     }
                 },
                 actions = {
-                    if (!isNota) { // Agregar el botón de notificaciones solo si no es una nota
+                    if (!isNota) {
                         IconButton(onClick = {
                             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                                // Verificar si el permiso ya está otorgado
+
                                 val permissionStatus = ContextCompat.checkSelfPermission(
                                     context,
                                     Manifest.permission.POST_NOTIFICATIONS
@@ -164,15 +165,17 @@ fun Editar(
                                 if (permissionStatus == PackageManager.PERMISSION_GRANTED) {
                                     navController.navigate("editarNotificaciones")
                                 } else {
-                                    // Solicitar permiso
+
                                     notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
                                 }
                             } else {
-                                // Si es una versión anterior a Android 13, navega directamente
                                 navController.navigate("editarNotificaciones")
                             }
                         }) {
-                            Icon(Icons.Default.Notifications, contentDescription = "Notificaciones")
+                            Icon(
+                                painter = painterResource(id = R.drawable.editnoti),
+                                contentDescription = "Editar Notificaciones"
+                            )
                         }
                     }
                 }
@@ -193,25 +196,18 @@ fun Editar(
                         )
                     )
                 } else {
-
-                    // Cancelar y reprogramar solo las notificaciones nuevas o modificadas
                     val notificacionesEditadas = tareasNotasViewModel.notifications.filter { nuevaNotificacion ->
-                        // Buscar la notificación equivalente en la lista original
                         val original = tareasNotasViewModel.originalNotifications.find { it.idAlarma == nuevaNotificacion.idAlarma }
-                        // Considerar que está editada si no existe en las originales o si cambió algún dato relevante
                         original == null || original.alarmTime != nuevaNotificacion.alarmTime
                     }
 
-                    // Cancelar solo las notificaciones que fueron editadas o eliminadas
                     tareasNotasViewModel.originalNotifications.forEach { originalNotificacion ->
                         val sigueExistiendo = tareasNotasViewModel.notifications.any { it.idAlarma == originalNotificacion.idAlarma }
                         if (!sigueExistiendo) {
-                            // Cancelar las notificaciones eliminadas
                             tareasNotasViewModel.cancelarNotificacion(originalNotificacion)
                         }
                     }
 
-                    // Reprogramar solo las notificaciones editadas o nuevas
                     notificacionesEditadas.forEach { alarmItem ->
                         tareasNotasViewModel.programarNotificacion(alarmItem)
                     }
@@ -219,7 +215,7 @@ fun Editar(
                         Tarea(
                             id = idItem,
                             titulo = title,
-                            fecha = dueDateTime, // Usar el formato correcto
+                            fecha = dueDateTime,
                             fechaCreacion = (tareaNota as Tarea).fechaCreacion,
                             descripcion = content,
                             multimedia = tareasNotasViewModel.convertUrisToJson(imagesUris),
@@ -227,7 +223,6 @@ fun Editar(
                         )
                     )
                 }
-                //tareasNotasViewModel.resetearNotificaciones()
                 navController.navigateUp()
 
             }) {
@@ -251,23 +246,27 @@ fun Editar(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(stringResource(id = R.string.tipo_de_elemento))
-                Spacer(modifier = Modifier.width(16.dp))
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    RadioButton(
-                        selected = isNota,
-                        onClick = { /* No se permite cambiar el tipo durante la edición */ },
-                        colors = RadioButtonDefaults.colors()
-                    )
-                    Text(stringResource(id = R.string.nota))
+                if(isNota){
+                    Spacer(modifier = Modifier.width(16.dp))
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        RadioButton(
+                            selected = true,
+                            onClick = {},
+                            colors = RadioButtonDefaults.colors()
+                        )
+                        Text(stringResource(id = R.string.nota))
+                    }
                 }
-                Spacer(modifier = Modifier.width(16.dp))
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    RadioButton(
-                        selected = !isNota,
-                        onClick = { /* No se permite cambiar el tipo durante la edición */ },
-                        colors = RadioButtonDefaults.colors()
-                    )
-                    Text(stringResource(id = R.string.tarea))
+                else{
+                    Spacer(modifier = Modifier.width(16.dp))
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        RadioButton(
+                            selected = true,
+                            onClick = {},
+                            colors = RadioButtonDefaults.colors()
+                        )
+                        Text(stringResource(id = R.string.tarea))
+                    }
                 }
             }
 
@@ -291,31 +290,43 @@ fun Editar(
                 )
 
                 Column(
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    FlowRow(
-                        modifier = Modifier.padding(top = 2.dp)
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 32.dp),
+                        horizontalArrangement = Arrangement.SpaceEvenly,
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        CameraView(imagesUris = imagesUris, onImagesChanged = { newUris ->
-                            val uniqueUris = (imagesUris + newUris).distinct()
-                            tareasNotasViewModel.updateImagesUris(uniqueUris)
-                        })
-                        CollectionGalleryView(
-                            imagesUris = imagesUris,
-                            onImagesChanged = { newUris ->
-                                val uniqueUris = (imagesUris + newUris).distinct()
-                                tareasNotasViewModel.updateImagesUris(uniqueUris)
-                            }
-                        )
+                        CameraView(
+                            imagesUris = tareasNotasViewModel.imagesUris,
+                            onImagesChanged = { newUris -> tareasNotasViewModel.updateImagesUris(newUris)
+                            })
+
                         VideoView(
                             imagesUris = tareasNotasViewModel.imagesUris,
                             onImagesChanged = { newUris -> tareasNotasViewModel.updateImagesUris(newUris) }
                         )
+
                         AudioHandler(
                             imagesUris = tareasNotasViewModel.imagesUris,
-                            onImagesChanged = { newUris -> tareasNotasViewModel.updateImagesUris(newUris) }
+                            onImagesChanged = { newUris -> tareasNotasViewModel.updateImagesUris(newUris)
+                            })
+
+                        CollectionGalleryView(
+                            imagesUris = tareasNotasViewModel.imagesUris,
+                            onImagesChanged = { newUris ->
+                                val uniqueUris = (tareasNotasViewModel.imagesUris + newUris).distinct()
+                                tareasNotasViewModel.updateImagesUris(uniqueUris)
+                            }
                         )
+
                     }
+
                 }
                 Box(modifier = Modifier.weight(1f)) {
                     PhotoGrid(
@@ -333,7 +344,7 @@ fun Editar(
                     trailingIcon = {
                         IconButton(onClick = { showDatePickerDialog = true }) {
                             Icon(
-                                painter = painterResource(id = android.R.drawable.ic_menu_my_calendar),
+                                imageVector = Icons.Default.DateRange,
                                 contentDescription = stringResource(id = R.string.seleccionar_fecha)
                             )
                         }
@@ -361,7 +372,7 @@ fun Editar(
                             timePicker.show()
                         }) {
                             Icon(
-                                painter = painterResource(id = android.R.drawable.ic_menu_recent_history),
+                                painter = painterResource(id = R.drawable.time),
                                 contentDescription = stringResource(id = R.string.seleccionar_hora)
                             )
                         }
@@ -379,31 +390,43 @@ fun Editar(
                 )
 
                 Column(
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    FlowRow(
-                        modifier = Modifier.padding(top = 2.dp)
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 32.dp),
+                        horizontalArrangement = Arrangement.SpaceEvenly,
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        CameraView(imagesUris = imagesUris, onImagesChanged = { newUris ->
-                            val uniqueUris = (imagesUris + newUris).distinct()
-                            tareasNotasViewModel.updateImagesUris(uniqueUris)
-                        })
-                        CollectionGalleryView(
-                            imagesUris = imagesUris,
-                            onImagesChanged = { newUris ->
-                                val uniqueUris = (imagesUris + newUris).distinct()
-                                tareasNotasViewModel.updateImagesUris(uniqueUris)
-                            }
-                        )
+                        CameraView(
+                            imagesUris = tareasNotasViewModel.imagesUris,
+                            onImagesChanged = { newUris -> tareasNotasViewModel.updateImagesUris(newUris)
+                            })
+
                         VideoView(
                             imagesUris = tareasNotasViewModel.imagesUris,
                             onImagesChanged = { newUris -> tareasNotasViewModel.updateImagesUris(newUris) }
                         )
+
                         AudioHandler(
                             imagesUris = tareasNotasViewModel.imagesUris,
-                            onImagesChanged = { newUris -> tareasNotasViewModel.updateImagesUris(newUris) }
+                            onImagesChanged = { newUris -> tareasNotasViewModel.updateImagesUris(newUris)
+                            })
+
+                        CollectionGalleryView(
+                            imagesUris = tareasNotasViewModel.imagesUris,
+                            onImagesChanged = { newUris ->
+                                val uniqueUris = (tareasNotasViewModel.imagesUris + newUris).distinct()
+                                tareasNotasViewModel.updateImagesUris(uniqueUris)
+                            }
                         )
+
                     }
+
                 }
                 Box(modifier = Modifier.weight(1f)) {
                     PhotoGrid(

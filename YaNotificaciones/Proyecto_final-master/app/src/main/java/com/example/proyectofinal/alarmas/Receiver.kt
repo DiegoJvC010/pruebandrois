@@ -39,14 +39,13 @@ class AlarmReceiver : BroadcastReceiver() {
         val notification = NotificationCompat.Builder(context, "alarm_id")
             .setLargeIcon(BitmapFactory.decodeResource(context.resources, R.drawable.itsur_notes))
             .setSmallIcon(R.drawable.noti)
-            //.setContentTitle("Alarma")
             .setContentTitle(context.getString(R.string.alarma))
             .setContentText(message+" "+context.getString(R.string.mensaje_tarea))
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setContentIntent(pendingIntent)
             .build()
 
-        val notificationId = idAlarma.hashCode() // Identificador único para la notificación
+        val notificationId = idAlarma.hashCode()// Identificador único para la notificación
         notificationManager.notify(notificationId, notification)
     }
 }

@@ -10,18 +10,26 @@ import android.provider.MediaStore
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import com.example.proyectofinal.R
@@ -72,29 +80,35 @@ fun VideoView(imagesUris: List<Uri>, onImagesChanged: (List<Uri>) -> Unit) {
         android.Manifest.permission.CAMERA
     )
 
-    Column(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalAlignment = Alignment.Start
-    ) {
-        Button(onClick = {
-            if (permissionCheckResult == PackageManager.PERMISSION_GRANTED) {
-                val file = context.createVideoFile()
-                if (!file.exists()) {
-                    return@Button
-                }
-                val uri = FileProvider.getUriForFile(
-                    context,
-                    "${context.packageName}.provider",
-                    file
-                )
-                context.lastCapturedFile = file
-                videoLauncher.launch(uri)
-            } else {
-                permissionLauncher.launch(android.Manifest.permission.CAMERA)
+
+    IconButton(onClick = {
+        if (permissionCheckResult == PackageManager.PERMISSION_GRANTED) {
+            val file = context.createVideoFile()
+            if (!file.exists()) {
+                return@IconButton
             }
-        }) {
-            Text(stringResource(R.string.tomar_video))
+            val uri = FileProvider.getUriForFile(
+                context,
+                "${context.packageName}.provider",
+                file
+            )
+            context.lastCapturedFile = file
+            videoLauncher.launch(uri)
+        } else {
+            permissionLauncher.launch(android.Manifest.permission.CAMERA)
         }
+    },
+        modifier = Modifier
+            .border(
+                width = 2.dp, // Grosor del borde
+                color = Color.Black, // Color del borde
+                shape = RoundedCornerShape(16.dp) // Bordes redondeados de 16.dp de radio
+            )
+            .padding(4.dp)) {
+        Icon(
+            painter = painterResource(id = R.drawable.addvidio), // Cambia `ic_camera` por el ícono que desees usar
+            contentDescription = stringResource(R.string.tomar_video)
+        )
     }
 }
 

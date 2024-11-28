@@ -18,17 +18,9 @@ import androidx.navigation.NavController
 fun TopBar(navController: NavController, title: String, onSearchClick: () -> Unit) {
     TopAppBar(
         title = { Text(title) },
-        navigationIcon = {
-            IconButton(onClick = { /* Abrir menú lateral */ }) {
-                Icon(Icons.Default.Menu, contentDescription = "Menú")
-            }
-        },
         actions = {
             IconButton(onClick = { onSearchClick() }) {
                 Icon(Icons.Default.Search, contentDescription = "Buscar")
-            }
-            IconButton(onClick = { /* Acción de configuración */ }) {
-                Icon(Icons.Default.Settings, contentDescription = "Configuración")
             }
         },
         modifier = Modifier.padding(4.dp)

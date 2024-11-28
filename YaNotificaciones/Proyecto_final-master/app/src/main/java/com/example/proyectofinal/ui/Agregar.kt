@@ -12,6 +12,7 @@ import android.net.Uri
 import android.os.Build
 import android.provider.MediaStore
 import android.util.Log
+import android.view.ViewGroup
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -25,6 +26,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -63,6 +65,7 @@ import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import coil3.request.crossfade
 import com.example.proyectofinal.R
+import com.google.android.exoplayer2.SimpleExoPlayer
 
 
 import com.google.android.material.datepicker.MaterialDatePicker
@@ -115,6 +118,14 @@ fun Agregar(navController: NavController, viewModel: TareasNotasViewModel) {
         )
     }
 
+    LaunchedEffect(navController) {
+        navController.currentBackStackEntryFlow.collect { backStackEntry ->
+            val currentRoute = backStackEntry.destination.route
+            if (currentRoute != "agregar") {
+                isButtonEnabled = false // Desactiva el botón cuando no estés en la pantalla "Agregar"
+            }
+        }
+    }
     DisposableEffect(Unit) {
         onDispose {
             val currentDestination = navController.currentDestination?.route
@@ -165,7 +176,10 @@ fun Agregar(navController: NavController, viewModel: TareasNotasViewModel) {
                                 navController.navigate("notificaciones")
                             }
                         }) {
-                            Icon(Icons.Default.Notifications, contentDescription = "Notificaciones")
+                            Icon(
+                                painter = painterResource(id = R.drawable.addnoti),
+                                contentDescription = "Agregar Notificaciones"
+                            )
                         }
                     }
                 }
@@ -278,15 +292,33 @@ fun Agregar(navController: NavController, viewModel: TareasNotasViewModel) {
                 )
 
                 Column(
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    FlowRow(
-                        modifier = Modifier.padding(top = 2.dp)
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 32.dp),
+                        horizontalArrangement = Arrangement.SpaceEvenly,
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        CameraView(imagesUris = viewModel.imagesUris, onImagesChanged = { newUris ->
-                            val uniqueUris = (viewModel.imagesUris + newUris).distinct()
-                            viewModel.updateImagesUris(uniqueUris)
+                        CameraView(
+                            imagesUris = viewModel.imagesUris,
+                            onImagesChanged = { newUris -> viewModel.updateImagesUris(newUris)
                         })
+
+                        VideoView(
+                            imagesUris = viewModel.imagesUris,
+                            onImagesChanged = { newUris -> viewModel.updateImagesUris(newUris) }
+                        )
+
+                        AudioHandler(
+                            imagesUris = viewModel.imagesUris,
+                            onImagesChanged = { newUris -> viewModel.updateImagesUris(newUris)
+                        })
+
                         CollectionGalleryView(
                             imagesUris = viewModel.imagesUris,
                             onImagesChanged = { newUris ->
@@ -294,14 +326,6 @@ fun Agregar(navController: NavController, viewModel: TareasNotasViewModel) {
                                 viewModel.updateImagesUris(uniqueUris)
                             }
                         )
-                        VideoView(
-                            imagesUris = viewModel.imagesUris,
-                            onImagesChanged = { newUris -> viewModel.updateImagesUris(newUris) }
-                        )
-                        AudioHandler(imagesUris = viewModel.imagesUris, onImagesChanged = { newUris ->
-                            val UniqueUris =  (viewModel.imagesUris + newUris).distinct()
-                            viewModel.updateImagesUris(UniqueUris)
-                        })
 
                     }
 
@@ -323,7 +347,7 @@ fun Agregar(navController: NavController, viewModel: TareasNotasViewModel) {
                     trailingIcon = {
                         IconButton(onClick = { showDatePickerDialog = true }) {
                             Icon(
-                                painter = painterResource(id = android.R.drawable.ic_menu_my_calendar),
+                                imageVector = Icons.Default.DateRange,
                                 contentDescription = stringResource(R.string.seleccionar_fecha)
                             )
                         }
@@ -351,7 +375,7 @@ fun Agregar(navController: NavController, viewModel: TareasNotasViewModel) {
                             timePicker.show()
                         }) {
                             Icon(
-                                painter = painterResource(id = android.R.drawable.ic_menu_recent_history),
+                                painter = painterResource(id = R.drawable.time),
                                 contentDescription = stringResource(R.string.seleccionar_hora)
                             )
                         }
@@ -372,15 +396,33 @@ fun Agregar(navController: NavController, viewModel: TareasNotasViewModel) {
                 )
 
                 Column(
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    FlowRow(
-                        modifier = Modifier.padding(top = 2.dp)
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 32.dp),
+                        horizontalArrangement = Arrangement.SpaceEvenly,
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        CameraView(imagesUris = viewModel.imagesUris, onImagesChanged = { newUris ->
-                            val uniqueUris = (viewModel.imagesUris + newUris).distinct()
-                            viewModel.updateImagesUris(uniqueUris)
-                        })
+                        CameraView(
+                            imagesUris = viewModel.imagesUris,
+                            onImagesChanged = { newUris -> viewModel.updateImagesUris(newUris)
+                            })
+
+                        VideoView(
+                            imagesUris = viewModel.imagesUris,
+                            onImagesChanged = { newUris -> viewModel.updateImagesUris(newUris) }
+                        )
+
+                        AudioHandler(
+                            imagesUris = viewModel.imagesUris,
+                            onImagesChanged = { newUris -> viewModel.updateImagesUris(newUris)
+                            })
+
                         CollectionGalleryView(
                             imagesUris = viewModel.imagesUris,
                             onImagesChanged = { newUris ->
@@ -388,16 +430,8 @@ fun Agregar(navController: NavController, viewModel: TareasNotasViewModel) {
                                 viewModel.updateImagesUris(uniqueUris)
                             }
                         )
-                        VideoView(
-                            imagesUris = viewModel.imagesUris,
-                            onImagesChanged = { newUris -> viewModel.updateImagesUris(newUris) }
-                        )
-                        AudioHandler(imagesUris = viewModel.imagesUris, onImagesChanged = { newUris ->
-                            val UniqueUris =  (viewModel.imagesUris + newUris).distinct()
-                            viewModel.updateImagesUris(UniqueUris)
-                        })
-                    }
 
+                    }
 
                 }
                 // Mostrar imágenes en un Grid con eliminación
@@ -473,96 +507,6 @@ fun DatePickerModal(
         }
     }
 }
-
-//@OptIn(ExperimentalFoundationApi::class)
-//@Composable
-//fun PhotoGrid(
-//    imagesUris: List<Uri>,
-//    onImageClick: (Uri) -> Unit,
-//    onImageRemove: ((Uri) -> Unit)? = null
-//) {
-//    var selectedVideoUri by remember { mutableStateOf<Uri?>(null) }
-//
-//    LazyVerticalGrid(
-//        columns = GridCells.Fixed(3), // Número fijo de columnas (3 por fila)
-//        modifier = Modifier.padding(8.dp),
-//        content = {
-//            items(imagesUris.size) { index ->
-//                val imageUri = imagesUris[index]
-//                val isVideo = imageUri.toString().contains("video") || imageUri.toString().endsWith(".mp4")
-//
-//                Box(modifier = Modifier.padding(4.dp)) {
-//                    if (isVideo) {
-//                        // Mostrar miniatura del video con un ícono de play
-//                        val context = LocalContext.current
-//                        val thumbnail: Bitmap? = remember(imageUri) {
-//                            ThumbnailUtils.createVideoThumbnail(
-//                                imageUri.toFile().path,
-//                                MediaStore.Images.Thumbnails.MINI_KIND
-//                            )
-//                        }
-//
-//                        Box(
-//                            contentAlignment = Alignment.Center,
-//                            modifier = Modifier
-//                                .size(100.dp)
-//                                .clickable { selectedVideoUri = imageUri }
-//                        ) {
-//                            if (thumbnail != null) {
-//                                androidx.compose.foundation.Image(
-//                                    bitmap = thumbnail.asImageBitmap(),
-//                                    contentDescription = "Miniatura del video",
-//                                    contentScale = ContentScale.Crop,
-//                                    modifier = Modifier.fillMaxSize()
-//                                )
-//                            }
-//                            Icon(
-//                                imageVector = Icons.Default.PlayArrow,
-//                                contentDescription = "Reproducir video",
-//                                tint = Color.White,
-//                                modifier = Modifier.size(48.dp)
-//                            )
-//                        }
-//                    } else {
-//                        AsyncImage(
-//                            model = ImageRequest.Builder(LocalContext.current)
-//                                .data(imageUri)
-//                                .crossfade(true)
-//                                .build(),
-//                            contentDescription = null,
-//                            modifier = Modifier
-//                                .size(100.dp) // Tamaño fijo para las miniaturas
-//                                .clickable { onImageClick(imageUri) }, // Acción al hacer clic
-//                            contentScale = ContentScale.Crop // Recorta la imagen para ajustarla
-//                        )
-//                    }
-//
-//                    // Mostrar botón de eliminación si se proporciona la función
-//                    if (onImageRemove != null) {
-//                        IconButton(
-//                            onClick = { onImageRemove(imageUri) },
-//                            modifier = Modifier
-//                                .align(Alignment.TopEnd)
-//                                .padding(4.dp)
-//                                .size(24.dp)
-//                        ) {
-//                            Icon(
-//                                Icons.Default.Close,
-//                                contentDescription = "Eliminar imagen",
-//                                tint = Color.Red
-//                            )
-//                        }
-//                    }
-//                }
-//            }
-//        }
-//    )
-//
-//    // Mostrar el diálogo de video a pantalla completa si se selecciona un video
-//    if (selectedVideoUri != null) {
-//        FullscreenVideoDialog(videoUri = selectedVideoUri!!, onDismiss = { selectedVideoUri = null })
-//    }
-//}
 
 @Composable
 fun PhotoGrid(
@@ -681,113 +625,106 @@ fun PhotoGrid(
     }
     // Mostrar el reproductor de audio si se selecciona un audio
     if (selectedAudioUri != null) {
-        AudioPlayer(audioUri = selectedAudioUri!!, onDismiss = { selectedAudioUri = null })
+        ExoPlayerAudioPlayerDialog(audioUri = selectedAudioUri!!, onDismiss = { selectedAudioUri = null })
+    }
+}
+
+
+
+
+@Composable
+fun ExoPlayerAudioPlayerDialog(
+    audioUri: Uri,
+    onDismiss: () -> Unit
+) {
+    Dialog(onDismissRequest = onDismiss) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(Color.White, shape = RoundedCornerShape(16.dp))
+                .padding(16.dp)
+        ) {
+            ExoPlayerAudioPlayerContent(audioUri = audioUri, onDismiss = onDismiss)
+        }
     }
 }
 
 @Composable
-fun AudioPlayer(
+fun ExoPlayerAudioPlayerContent(
     audioUri: Uri,
     onDismiss: () -> Unit
 ) {
-    var isPlaying by remember { mutableStateOf(false) }
-    var currentPosition by remember { mutableStateOf(0) }
-    var duration by remember { mutableStateOf(0) }
+    val context = LocalContext.current
 
-    val mediaPlayer = remember { MediaPlayer() }
+    // Crear y recordar una instancia de ExoPlayer
+    val exoPlayer = remember {
+        androidx.media3.exoplayer.ExoPlayer.Builder(context).build().apply {
+            setMediaItem(androidx.media3.common.MediaItem.fromUri(audioUri))
+            prepare()
+        }
+    }
+
+    // Liberar ExoPlayer cuando el Composable se elimina de la composición
+    DisposableEffect(Unit) {
+        onDispose {
+            exoPlayer.release()
+        }
+    }
 
     // Obtener el nombre del archivo de audio
     val audioFileName = remember(audioUri) {
         audioUri.lastPathSegment?.split("/")?.lastOrNull() ?: "Audio desconocido"
     }
 
-    LaunchedEffect(audioUri) {
-        mediaPlayer.apply {
-            reset()
-            setDataSource(audioUri.toString())
-            prepare()
-            duration = getDuration()
-
-            // Comienza la reproducción
-            start()
-            isPlaying = true
-            currentPosition = getCurrentPosition()
-
-            setOnCompletionListener {
-                isPlaying = false
-                currentPosition = 0
-            }
-        }
-
-        // Actualizar currentPosition mientras el audio se reproduce
-        while (isPlaying) {
-            currentPosition = mediaPlayer.currentPosition
-            delay(1000) // Actualiza cada segundo
-        }
-    }
-
-    DisposableEffect(Unit) {
-        onDispose {
-            mediaPlayer.release()
-            currentPosition = 0
-        }
-    }
-
     Column(
         modifier = Modifier
-            .fillMaxSize()
-            .background(Color.White)
+            .fillMaxWidth()
             .padding(16.dp),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         // Mostrar el nombre del archivo de audio
-        Text(text = "Reproduciendo:")
-        Text(audioFileName, style = MaterialTheme.typography.bodyMedium)
-
-        Slider(
-            value = currentPosition.toFloat(),
-            onValueChange = { newValue ->
-                currentPosition = newValue.toInt()
-                mediaPlayer.seekTo(currentPosition)
-            },
-            valueRange = 0f..duration.toFloat(),
-            onValueChangeFinished = {
-                mediaPlayer.seekTo(currentPosition) // Asegúrate de que se busque a la nueva posición
-            }
-        )
-
         Text(
-            text = "${currentPosition / 1000} / ${duration / 1000} s",
-            modifier = Modifier.padding(vertical = 8.dp)
+            text = audioFileName,
+            style = MaterialTheme.typography.bodyMedium,
+            maxLines = 1,
+            modifier = Modifier.padding(bottom = 8.dp)
         )
 
-        Row {
-            IconButton(onClick = {
-                if (isPlaying) {
-                    mediaPlayer.pause()
-                } else {
-                    mediaPlayer.start()
+        // Incluir un PlayerView en el Composable para mostrar la interfaz del reproductor
+        AndroidView(
+            factory = {
+                androidx.media3.ui.PlayerView(context).apply {
+                    player = exoPlayer
+                    layoutParams = ViewGroup.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                        ViewGroup.LayoutParams.WRAP_CONTENT
+                    )
+                    useController = true // Mostrar controles (Play, Pause, Seek, etc.)
                 }
-                isPlaying = !isPlaying
-            }) {
-                Icon(
-                    painter = painterResource(id = if (isPlaying) R.drawable.pause else R.drawable.play),
-                    contentDescription = if (isPlaying) "Pausar" else "Reproducir",
-                    tint = Color.Black,
-                    modifier = Modifier.size(48.dp)
-                )
-            }
+            },
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(200.dp)
+        )
 
-            IconButton(onClick = onDismiss) {
-                Icon(
-                    imageVector = Icons.Default.Close,
-                    contentDescription = "Cerrar"
-                )
-            }
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Botón para cerrar el diálogo
+        IconButton(onClick = onDismiss) {
+            Icon(
+                imageVector = Icons.Default.Close,
+                contentDescription = "Cerrar",
+                tint = Color.Black,
+                modifier = Modifier.size(32.dp)
+            )
         }
     }
 }
+
+
+
+
 
 @androidx.annotation.OptIn(UnstableApi::class)
 @Composable
@@ -838,3 +775,4 @@ fun FullscreenVideoDialog(videoUri: Uri, onDismiss: () -> Unit) {
         }
     }
 }
+

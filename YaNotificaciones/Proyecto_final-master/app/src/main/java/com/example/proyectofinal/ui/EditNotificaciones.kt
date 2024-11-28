@@ -22,6 +22,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -33,6 +34,8 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
 
+
+
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -43,12 +46,14 @@ fun editNotificaciones(navController: NavController, viewModel: TareasNotasViewM
     var tempDate by remember { mutableStateOf<LocalDate?>(null) }
     var isEditing by remember { mutableStateOf(false) }
     var editingIndex by remember { mutableStateOf<Int?>(null) }
-
+    var isInEditNotificaciones by remember { mutableStateOf(true) }
     val currentRoute = navController.currentBackStackEntryFlow.collectAsState(initial = null).value?.destination?.route
 
     // Cerrar diálogos si salimos de la pantalla
+
     LaunchedEffect(currentRoute) {
-        if (currentRoute != "editarNotificaciones") {
+        isInEditNotificaciones = currentRoute == "editarNotificaciones"
+        if (!isInEditNotificaciones) {
             showDatePicker = false
             showTimePicker = false
             isEditing = false
@@ -69,19 +74,27 @@ fun editNotificaciones(navController: NavController, viewModel: TareasNotasViewM
             TopAppBar(
                 title = { Text(text = stringResource(id = R.string.editar_notificaciones)) },
                 navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }) {
+                    IconButton(onClick = {
+                        showDatePicker = false
+                        showTimePicker = false
+                        isEditing = false
+                        editingIndex = null
+                        navController.popBackStack() }) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "Regresar")
                     }
                 }
             )
         },
         floatingActionButton = {
-            FloatingActionButton(onClick = {
-                showDatePicker = true
-                isEditing = false
-            }) {
-                Icon(Icons.Default.Add, contentDescription = "Agregar recordatorio")
+            if (isInEditNotificaciones) {
+                FloatingActionButton(onClick = {
+                    showDatePicker = true
+                    isEditing = false
+                }) {
+                    Icon(Icons.Default.Add, contentDescription = "Agregar recordatorio")
+                }
             }
+
         }
     ) { paddingValues ->
         LazyColumn(
@@ -147,7 +160,7 @@ fun editNotificaciones(navController: NavController, viewModel: TareasNotasViewM
                                 Spacer(modifier = Modifier.width(42.dp))
                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                     Icon(
-                                        imageVector = Icons.Default.Done,
+                                        painter = painterResource(id = R.drawable.hralarm),
                                         contentDescription = "Hora",
                                         modifier = Modifier.size(24.dp),
                                         tint = MaterialTheme.colorScheme.primary

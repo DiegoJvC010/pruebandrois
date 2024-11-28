@@ -14,7 +14,9 @@ import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.PlayArrow
@@ -22,6 +24,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -66,30 +69,6 @@ fun playAudio(context: Context, path: String) {
     }
 }
 
-// Iniciar grabación sin permisos explícitos
-//fun startRecordingWithoutPermissions(context: Context) {
-//    try {
-//        val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss").format(Date())
-//        //val storageDir = context.filesDir // Almacena en el directorio interno de la app
-//        val storageDir = context.getExternalFilesDir("images")
-//        //val audioFile = File(storageDir, "audio_${System.currentTimeMillis()}.mp3")
-//        val audioName = "audio_$timeStamp.mp3"
-//        val audioFile = File(storageDir, audioName)
-//        audioFilePath = audioFile.absolutePath
-//
-//        mediaRecorder = MediaRecorder().apply {
-//            setAudioSource(MediaRecorder.AudioSource.MIC)
-//            setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
-//            setOutputFile(audioFilePath)
-//            setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
-//            prepare()
-//            start()
-//        }
-//    } catch (e: Exception) {
-//        Toast.makeText(context, "Error al iniciar la grabación", Toast.LENGTH_SHORT).show()
-//        e.printStackTrace()
-//    }
-//}
 fun startRecordingWithoutPermissions(context: Context) {
     try {
         val audioFile = context.createAudioFile() // Llama a la nueva función
@@ -147,205 +126,6 @@ fun checkAndRequestPermissions(context: Context, onPermissionsGranted: () -> Uni
     }
 }
 
-// Componente para manejar grabación y reproducción de audio
-//@Composable
-//fun AudioHandler(
-//    imagesUris: List<Uri>,
-//    onImagesChanged: (List<Uri>) -> Unit
-//) {
-//    val context = LocalContext.current
-//    var isRecording by remember { mutableStateOf(false) }
-//    var audioFilePaths by remember { mutableStateOf<List<String>>(emptyList()) }
-//
-//    // Función para iniciar/detener grabación
-//    val toggleRecording: () -> Unit = {
-//        if (isRecording) {
-//            stopRecording()?.let { path ->
-//                audioFilePaths = audioFilePaths + path
-//                Toast.makeText(context, "Audio guardado en: $path", Toast.LENGTH_SHORT).show()
-//            }
-//        } else {
-//            startRecordingWithoutPermissions(context)
-//            Toast.makeText(context, "Grabando audio...", Toast.LENGTH_SHORT).show()
-//        }
-//        isRecording = !isRecording
-//    }
-//
-//    Column {
-//        IconButton(onClick = toggleRecording) {
-//            Icon(
-//                painter = painterResource(id = if (isRecording) R.drawable.stop else R.drawable.micro),
-//                contentDescription = "Grabar audio"
-//            )
-//        }
-//
-//        // Reproducir audios guardados
-//        audioFilePaths.forEachIndexed { index, path ->
-//            Row(
-//                modifier = Modifier
-//                    .fillMaxWidth()
-//                    .padding(vertical = 8.dp),
-//                horizontalArrangement = Arrangement.SpaceBetween
-//            ) {
-//                Text("Audio ${index + 1}", modifier = Modifier.weight(1f))
-//                IconButton(onClick = { playAudio(context, path) }) {
-//                    Icon(Icons.Default.PlayArrow, contentDescription = "Reproducir audio")
-//                }
-//            }
-//        }
-//    }
-//}
-//}
-//@Composable
-//fun AudioHandler(
-//    imagesUris: List<Uri>,
-//    onImagesChanged: (List<Uri>) -> Unit
-//) {
-//    val context = LocalContext.current
-//    var isRecording by remember { mutableStateOf(false) }
-//
-//    // Lanzador para manejar la solicitud de permisos
-//    val permissionLauncher = rememberLauncherForActivityResult(
-//        contract = ActivityResultContracts.RequestMultiplePermissions()
-//    ) { permissions ->
-//        val allGranted = permissions.values.all { it } // Verifica si todos los permisos fueron otorgados
-//        if (allGranted) {
-//            // Inicia la grabación si los permisos son concedidos
-//            startRecordingWithoutPermissions(context)
-//            Toast.makeText(context, "Grabando audio...", Toast.LENGTH_SHORT).show()
-//        } else {
-//            Toast.makeText(context, "Permisos necesarios no otorgados", Toast.LENGTH_SHORT).show()
-//        }
-//    }
-//
-//    // Función para iniciar/detener grabación
-//    val toggleRecording: () -> Unit = {
-//        if (isRecording) {
-//            stopRecording()?.let { path ->
-//                val uri = Uri.parse(path)
-//                // Actualizar la lista de URIs
-//                //onImagesChanged(imagesUris + uri)
-//                onImagesChanged(imagesUris + Uri.fromFile(context.lastCapturedFile))
-//                Toast.makeText(context, "Audio guardado en: $path", Toast.LENGTH_SHORT).show()
-//            }
-//        } else {
-//            // Verificar y solicitar permisos
-//            checkAndRequestPermissions(context) {
-//                // Si los permisos son concedidos, iniciar la grabación
-//                startRecordingWithoutPermissions(context)
-//                Toast.makeText(context, "Grabando audio...", Toast.LENGTH_SHORT).show()
-//            }
-//        }
-//        isRecording = !isRecording
-//    }
-//
-//    Column {
-//        IconButton(onClick = toggleRecording) {
-//            Icon(
-//                painter = painterResource(id = if (isRecording) R.drawable.stop else R.drawable.micro),
-//                contentDescription = "Grabar audio"
-//            )
-//        }
-//
-//        // Reproducir audios guardados
-//        imagesUris.forEachIndexed { index, uri ->
-//            Row(
-//                modifier = Modifier
-//                    .fillMaxWidth()
-//                    .padding(vertical = 8.dp),
-//                horizontalArrangement = Arrangement.SpaceBetween
-//            ) {
-//                Text("Audio ${index + 1}", modifier = Modifier.weight(1f))
-//                IconButton(onClick = { playAudio(context, uri.toString()) }) {
-//                    Icon(Icons.Default.PlayArrow, contentDescription = "Reproducir audio")
-//                }
-//                IconButton(onClick = {
-//                    // Eliminar audio de la lista
-//                    onImagesChanged(imagesUris.filter { it != uri })
-//                }) {
-//                    Icon(Icons.Default.Delete, contentDescription = "Eliminar audio", tint = Color.Red)
-//                }
-//            }
-//        }
-//    }
-//}
-
-
-
-//@Composable
-//fun AudioHandler(
-//    imagesUris: List<Uri>,
-//    onImagesChanged: (List<Uri>) -> Unit
-//) {
-//    val context = LocalContext.current
-//    var isRecording by remember { mutableStateOf(false) }
-//    var recordingPath by remember { mutableStateOf<String?>(null) } // Para almacenar la ruta del audio grabado
-//
-//    // Lanzador para permisos
-//    val permissionLauncher = rememberLauncherForActivityResult(
-//        contract = ActivityResultContracts.RequestMultiplePermissions()
-//    ) { permissions ->
-//        val allGranted = permissions.values.all { it }
-//        if (allGranted) {
-//            // Si se concedieron los permisos, iniciar la grabación
-//            startRecordingWithoutPermissions(context)
-//            Toast.makeText(context, "Grabando audio...", Toast.LENGTH_SHORT).show()
-//            isRecording = true
-//        } else {
-//            Toast.makeText(context, "Permisos necesarios no otorgados", Toast.LENGTH_SHORT).show()
-//        }
-//    }
-//
-//    // Función para iniciar/detener grabación
-//    val toggleRecording: () -> Unit = {
-//        if (isRecording) {
-//            recordingPath = stopRecording() // Guarda la ruta del audio grabado
-//            recordingPath?.let { path ->
-//                val uri = Uri.parse(path)
-//                // Actualizar la lista de URIs
-//                onImagesChanged(imagesUris + uri)
-//                Toast.makeText(context, "Audio guardado en: $path", Toast.LENGTH_SHORT).show()
-//            }
-//            isRecording = false // Cambiar el estado de grabación
-//        } else {
-//            // Solicitar permisos antes de grabar
-//            permissionLauncher.launch(arrayOf(
-//                Manifest.permission.RECORD_AUDIO,
-//                Manifest.permission.WRITE_EXTERNAL_STORAGE
-//            ))
-//        }
-//    }
-//
-//    Column {
-//        IconButton(onClick = toggleRecording) {
-//            Icon(
-//                painter = painterResource(id = if (isRecording) R.drawable.stop else R.drawable.micro),
-//                contentDescription = "Grabar audio"
-//            )
-//        }
-//
-//        // Reproducir audios guardados
-//        imagesUris.forEachIndexed { index, uri ->
-//            Row(
-//                modifier = Modifier
-//                    .fillMaxWidth()
-//                    .padding(vertical = 8.dp),
-//                horizontalArrangement = Arrangement.SpaceBetween
-//            ) {
-//                Text("Audio ${index + 1}", modifier = Modifier.weight(1f))
-//                IconButton(onClick = { playAudio(context, uri.toString()) }) {
-//                    Icon(Icons.Default.PlayArrow, contentDescription = "Reproducir audio")
-//                }
-//                IconButton(onClick = {
-//                    // Eliminar audio de la lista
-//                    onImagesChanged(imagesUris.filter { it != uri })
-//                }) {
-//                    Icon(Icons.Default.Delete, contentDescription = "Eliminar audio", tint = Color.Red)
-//                }
-//            }
-//        }
-//    }
-//}
 
 @Composable
 fun AudioHandler(
@@ -389,33 +169,22 @@ fun AudioHandler(
         }
     }
 
-    Column {
-        IconButton(onClick = toggleRecording) {
-            Icon(
-                painter = painterResource(id = if (isRecording) R.drawable.stop else R.drawable.micro),
-                contentDescription = "Grabar audio"
-            )
-        }
 
-        // Reproducir audios guardados
-//        imagesUris.forEachIndexed { index, uri ->
-//            Row(
-//                modifier = Modifier
-//                    .fillMaxWidth()
-//                    .padding(vertical = 8.dp),
-//                horizontalArrangement = Arrangement.SpaceBetween
-//            ) {
-//                Text("Audio ${index + 1}", modifier = Modifier.weight(1f))
-//                IconButton(onClick = { playAudio(context, uri.toString()) }) {
-//                    Icon(Icons.Default.PlayArrow, contentDescription = "Reproducir audio")
-//                }
-//                IconButton(onClick = {
-//                    onImagesChanged(imagesUris.filter { it != uri }) // Eliminar audio de la lista
-//                }) {
-//                    Icon(Icons.Default.Delete, contentDescription = "Eliminar audio", tint = Color.Red)
-//                }
-//            }
-//        }
+    IconButton(
+        onClick = toggleRecording,
+        modifier = Modifier
+            .border(
+                width = 2.dp, // Grosor del borde
+                color = Color.Black, // Color del borde
+                shape = RoundedCornerShape(16.dp) // Bordes redondeados de 16.dp de radio
+            )
+            .padding(4.dp)
+
+    ) {
+        Icon(
+            painter = painterResource(id = if (isRecording) R.drawable.stop else R.drawable.micro),
+            contentDescription = "Grabar audio"
+        )
     }
 }
 

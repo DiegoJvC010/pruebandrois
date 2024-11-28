@@ -37,8 +37,6 @@ class TareasNotasViewModel(
     private val notaRepository: NotaRepository,
     private val alarmScheduler: AlarmScheduler
 ) : ViewModel() {
-    var notificacionesInicializadas: Boolean = false
-
     var uiState by mutableStateOf(TareasNotasUiState())
         private set
 
@@ -59,9 +57,7 @@ class TareasNotasViewModel(
 
     var originalNotifications by mutableStateOf<List<AlarmItem>>(emptyList())
     var notifications by mutableStateOf<List<AlarmItem>>(emptyList())
-    var tempNotifications by mutableStateOf<List<AlarmItem>>(emptyList())
 
-    private val alarmasPorCancelar = mutableListOf<AlarmItem>()
 
     init {
         // Cargar tareas y notas desde los repositorios usando flujos
@@ -82,21 +78,11 @@ class TareasNotasViewModel(
         viewModelScope.apply {
             updateTitle(tarea.titulo)
             updateContent(tarea.descripcion)
-
-            // Procesar fecha si existe
             tarea.fecha?.let { fecha ->
                 val parsedDateTime = LocalDateTime.parse(fecha, DateTimeFormatter.ISO_LOCAL_DATE_TIME)
                 updateDueDate(parsedDateTime.toLocalDate())
                 updateDueTime(parsedDateTime.toLocalTime())
             }
-            /*
-            // Cargar notificaciones si están vacías
-            if (notifications.isEmpty() && originalNotifications.isEmpty()) {
-                notifications = convertJsonToAlarmItems(tarea.recordatorios)
-                originalNotifications = notifications.toList()
-            }
-            */
-            // Procesar imágenes
             updateImagesUris(parseMultimediaUris(tarea.multimedia))
         }
     }
@@ -323,77 +309,6 @@ class TareasNotasViewModel(
         }
         return uris
     }
-    fun cargarNotificaciones(notificacionesJson: String) {
-        notifications = convertJsonToAlarmItems(notificacionesJson)
-    }
-    fun iniciarCopiaDeSeguridad() {
-        originalNotifications = notifications.toList() // Hacer una copia de las notificaciones actuales
-    }
-
-    fun iniciarEdicionAlarmas() {
-        tempNotifications = notifications.toList() // Copia las alarmas actuales para edición
-        alarmasPorCancelar.clear() // Limpia el historial de cancelaciones pendientes
-    }
-
-    fun confirmarEdicionAlarmas() {
-        val originales = notifications.toSet() // Almacena el estado original
-        val modificadas = tempNotifications.toSet() // Almacena el estado temporal
-
-        // Alarmas a agregar (nuevas alarmas)
-        val agregar = modificadas.minus(originales)
-        // Alarmas a eliminar
-        val eliminar = originales.minus(modificadas)
-        // Alarmas modificadas (en ambas listas, pero con contenido diferente)
-        val modificar = originales.intersect(modificadas).filter { original ->
-            val actual = tempNotifications.find { it.idAlarma == original.idAlarma }
-            original != actual // Comparar si hubo cambios
-        }
-
-        // Procesar alarmas eliminadas
-        eliminar.forEach { alarma ->
-            alarmScheduler.cancel(alarma)
-        }
-
-        // Procesar alarmas modificadas
-        modificar.forEach { original ->
-            val actual = tempNotifications.find { it.idAlarma == original.idAlarma }
-            if (actual != null) {
-                alarmScheduler.cancel(original) // Cancelar la antigua
-                alarmScheduler.schedule(actual) // Programar la nueva
-            }
-        }
-
-        // Procesar alarmas nuevas
-        agregar.forEach { alarma ->
-            alarmScheduler.schedule(alarma)
-        }
-        // Actualizar la lista definitiva
-        notifications = tempNotifications.toList()
-    }
-
-
-
-    fun cancelarEdicionAlarmas() {
-        tempNotifications = notifications.toList() // Deshace los cambios
-        alarmasPorCancelar.clear() // No se cancela ninguna alarma, se reinicia el estado
-    }
-
-    fun editarAlarma(index: Int, nuevaFecha: LocalDate, nuevaHora: LocalTime) {
-        tempNotifications = tempNotifications.toMutableList().apply {
-            this[index] = this[index].copy(
-                alarmTime = LocalDateTime.of(nuevaFecha, nuevaHora).toString() // Convertir a String
-            )
-        }
-    }
-
-
-    fun eliminarAlarma(index: Int) {
-        val alarmaEliminada = tempNotifications[index]
-        alarmasPorCancelar.add(alarmaEliminada)
-        tempNotifications = tempNotifications.toMutableList().apply {
-            removeAt(index)
-        }
-    }
 
     fun agregarNotificacion(date: LocalDate, time: LocalTime, tittle: String) {
         val alarmItem = AlarmItem(
@@ -414,15 +329,9 @@ class TareasNotasViewModel(
 
 
     fun eliminarNotificacion(index: Int) {
-        //val alarmItem = notifications[index]
-        //alarmScheduler.cancel(alarmItem)
         notifications = notifications.toMutableList().apply {
             removeAt(index)
         }
-    }
-
-    fun agregarAlarma(nuevaAlarma: AlarmItem) {
-        tempNotifications = tempNotifications + nuevaAlarma
     }
 
     fun editarNotificacion(index: Int, newDate: LocalDate, newTime: LocalTime) {
@@ -433,15 +342,7 @@ class TareasNotasViewModel(
         notifications = notifications.toMutableList().apply {
             this[index] = updatedAlarm
         }
-        //alarmScheduler.edit(oldAlarm, LocalDateTime.parse(updatedAlarm.alarmTime)) // Reconvertir al programar
     }
-
-
-    /*fun editarNotificacionHora(index: Int, nuevaHora: LocalTime) {
-        notifications = notifications.toMutableList().apply {
-            this[index] = Pair(this[index].first, nuevaHora)
-        }
-    }*/
 
     fun convertAlarmItemsToJson(alarms: List<AlarmItem>): String {
         return Gson().toJson(alarms)
@@ -450,26 +351,6 @@ class TareasNotasViewModel(
     fun convertJsonToAlarmItems(json: String): List<AlarmItem> {
         val type = object : TypeToken<List<AlarmItem>>() {}.type
         return Gson().fromJson(json, type)
-    }
-
-    fun clearNotificaciones() {
-        notifications = emptyList()
-        originalNotifications = emptyList()
-    }
-
-    fun convertRecordatoriosToJson(recordatorios: List<Pair<LocalDate, LocalTime>>): String {
-        val gson = Gson()
-        val listaFormateada = recordatorios.map { listOf(it.first.toString(), it.second.toString()) }
-        return gson.toJson(listaFormateada)
-    }
-
-    fun convertJsonToRecordatorios(json: String): List<Pair<LocalDate, LocalTime>> {
-        val gson = Gson()
-        // Leer el JSON como una lista de listas de dos elementos (fecha y hora en String)
-        val type = object : TypeToken<List<List<String>>>() {}.type
-        val listaFormateada: List<List<String>> = gson.fromJson(json, type)
-        // Convertir la lista de listas a pares de LocalDate y LocalTime
-        return listaFormateada.map { Pair(LocalDate.parse(it[0]), LocalTime.parse(it[1])) }
     }
 
 

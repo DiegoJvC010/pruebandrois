@@ -22,6 +22,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -43,7 +44,19 @@ fun notificaciones(navController: NavController, viewModel: TareasNotasViewModel
     var tempDate by remember { mutableStateOf<LocalDate?>(null) }
     var isEditing by remember { mutableStateOf(false) }
     var editingIndex by remember { mutableStateOf<Int?>(null) }
+    var isInEditNotificaciones by remember { mutableStateOf(true) }
+    val currentRoute = navController.currentBackStackEntryFlow.collectAsState(initial = null).value?.destination?.route
 
+
+    LaunchedEffect(currentRoute) {
+        isInEditNotificaciones = currentRoute == "notificaciones"
+        if (!isInEditNotificaciones) {
+            showDatePicker = false
+            showTimePicker = false
+            isEditing = false
+            editingIndex = null
+        }
+    }
     DisposableEffect(Unit) {
         onDispose {
             showDatePicker = false
@@ -64,11 +77,13 @@ fun notificaciones(navController: NavController, viewModel: TareasNotasViewModel
             )
         },
         floatingActionButton = {
-            FloatingActionButton(onClick = {
-                showDatePicker = true
-                isEditing = false
-            }) {
-                Icon(Icons.Default.Add, contentDescription = "Agregar recordatorio")
+            if (isInEditNotificaciones) {
+                FloatingActionButton(onClick = {
+                    showDatePicker = true
+                    isEditing = false
+                }) {
+                    Icon(Icons.Default.Add, contentDescription = "Agregar recordatorio")
+                }
             }
         }
     ) { paddingValues ->
@@ -134,7 +149,7 @@ fun notificaciones(navController: NavController, viewModel: TareasNotasViewModel
                                 Spacer(modifier = Modifier.width(42.dp))
                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                     Icon(
-                                        imageVector = Icons.Default.Done,
+                                        painter = painterResource(id = R.drawable.hralarm),
                                         contentDescription = "Hora",
                                         modifier = Modifier.size(24.dp),
                                         tint = MaterialTheme.colorScheme.primary

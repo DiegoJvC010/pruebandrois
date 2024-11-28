@@ -42,4 +42,5 @@
     <string name="alarma">Alarma</string>
     <string name="mensaje_tarea"> - El tiempo se acaba Bobesponja - ¡Ponte las pilas con esa tarea!</string>
     <string name="noti_permiso">Es necesario otorgar el permiso de notificaciones para continuar.</string>
+    <string name="archivos">Archivos</string>
 </resources>

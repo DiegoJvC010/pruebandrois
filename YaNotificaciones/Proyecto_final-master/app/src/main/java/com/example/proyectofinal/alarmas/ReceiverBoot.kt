@@ -30,7 +30,7 @@ class ReceiverBootCompleted : BroadcastReceiver() {
 
             CoroutineScope(Dispatchers.IO).launch {
                 try {
-                    // Recolecta el flujo para obtener la lista actual de tareas
+                    //Recolecta el flujo para obtener la lista actual de tareas
                     val tareas = tareaDao.getAllTareas().first()
 
                     tareas.forEach { tarea ->
@@ -38,14 +38,14 @@ class ReceiverBootCompleted : BroadcastReceiver() {
                             convertJsonToAlarmItems(json)
                         } ?: emptyList()
 
-                        // Filtra solo alarmas futuras
+                        //Filtra solo alarmas futuras
                         recordatorios.filter { alarmItem ->
                             LocalDateTime.parse(
                                 alarmItem.alarmTime,
                                 DateTimeFormatter.ISO_LOCAL_DATE_TIME
                             ).isAfter(LocalDateTime.now())
                         }.forEach { alarmItem ->
-                            // Reprograma la alarma
+                            //Reprograma la alarma
                             alarmScheduler.schedule(alarmItem)
                             Log.d(
                                 "ReceiverBootCompleted",
